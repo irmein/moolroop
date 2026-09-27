@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package moolroop.v1;
+
+option go_package = "moolroop/gen/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+
+service IdentityService {
+  rpc CreateProfile(CreateProfileRequest) returns (ProfileResponse);
+  rpc GetProfile(GetProfileRequest) returns (ProfileResponse);
+  rpc PatchProfile(PatchProfileRequest) returns (ProfileResponse);
+
+  rpc LogActivity(LogActivityRequest) returns (ActivityResponse);
+  rpc ListActivities(ListActivitiesRequest) returns (ListActivitiesResponse);
+}
+
+message UserProfile {
+  string user_id = 1;
+  string full_name = 2;
+  string email = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message ActivityRecord {
+  string activity_id = 1;
+  string user_id = 2;
+  string action_type = 3;
+  string description = 4;
+  google.protobuf.Timestamp logged_at = 5;
+}
+
+message CreateProfileRequest {
+  string full_name = 1;
+  string email = 2;
+}
+
+message GetProfileRequest {
+  string user_id = 1;
+}
+
+message PatchProfileRequest {
+  string user_id = 1;
+  string full_name = 2;
+  string email = 3;
+  google.protobuf.FieldMask update_mask = 4;
+}
+
+message ProfileResponse {
+  UserProfile profile = 1;
+}
+
+message LogActivityRequest {
+  string user_id = 1;
+  string action_type = 2;
+  string description = 3;
+}
+
+message ActivityResponse {
+  ActivityRecord record = 1;
+}
+
+message ListActivitiesRequest {
+  string user_id = 1;
+}
+
+message ListActivitiesResponse {
+  repeated ActivityRecord activities = 1;
+}

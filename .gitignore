@@ -1,0 +1,21 @@
+# Binaries
+bin/
+server
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# macOS metadata
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*~

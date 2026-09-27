@@ -1,0 +1,258 @@
+basePath: /api/v1
+definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  moolroop_gen_v1.ActivityRecord:
+    properties:
+      action_type:
+        type: string
+      activity_id:
+        type: string
+      description:
+        type: string
+      logged_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      user_id:
+        type: string
+    type: object
+  moolroop_gen_v1.UserProfile:
+    properties:
+      created_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      email:
+        type: string
+      full_name:
+        type: string
+      updated_at:
+        $ref: '#/definitions/timestamppb.Timestamp'
+      user_id:
+        type: string
+    type: object
+  moolroop_internal_model.CreateProfilePayload:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      full_name:
+        example: Alice Smith
+        type: string
+    required:
+    - email
+    - full_name
+    type: object
+  moolroop_internal_model.LogActivityPayload:
+    properties:
+      action_type:
+        example: PROFILE_UPDATE
+        type: string
+      description:
+        example: User updated profile contact info
+        type: string
+      user_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - action_type
+    - user_id
+    type: object
+  moolroop_internal_model.PatchProfilePayload:
+    properties:
+      email:
+        example: alice.new@example.com
+        type: string
+      full_name:
+        example: Alice Cooper
+        type: string
+    type: object
+  timestamppb.Timestamp:
+    properties:
+      nanos:
+        description: |-
+          Non-negative fractions of a second at nanosecond resolution. This field is
+          the nanosecond portion of the duration, not an alternative to seconds.
+          Negative second values with fractions must still have non-negative nanos
+          values that count forward in time. Must be between 0 and 999,999,999
+          inclusive.
+        type: integer
+      seconds:
+        description: |-
+          Represents seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z. Must
+          be between -62135596800 and 253402300799 inclusive (which corresponds to
+          0001-01-01T00:00:00Z to 9999-12-31T23:59:59Z).
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: Minimalist Identity & Immutable Activity Engine
+  title: MoolRoop Identity Core API
+  version: "1.0"
+paths:
+  /activities:
+    post:
+      consumes:
+      - application/json
+      description: Creates an append-only, immutable activity log event for a user
+      parameters:
+      - description: Activity payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/moolroop_internal_model.LogActivityPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/moolroop_gen_v1.ActivityRecord'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Log an immutable activity record
+      tags:
+      - activity
+  /activities/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all historical activity records for the specified user
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/moolroop_gen_v1.ActivityRecord'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: List immutable activity history for a user
+      tags:
+      - activity
+  /profiles:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user profile with minimal PII (full name and email
+        only)
+      parameters:
+      - description: Create Profile Request
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/moolroop_internal_model.CreateProfilePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/moolroop_gen_v1.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Create a new user profile
+      tags:
+      - profile
+  /profiles/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves profile information by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/moolroop_gen_v1.UserProfile'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Get user profile by ID
+      tags:
+      - profile
+    patch:
+      consumes:
+      - application/json
+      description: Incrementally update profile fields without rewriting full entity
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to patch
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/moolroop_internal_model.PatchProfilePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/moolroop_gen_v1.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Patch an existing user profile
+      tags:
+      - profile
+swagger: "2.0"
