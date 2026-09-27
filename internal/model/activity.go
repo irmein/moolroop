@@ -3,7 +3,7 @@ package model
 import (
 	"strings"
 
-	"moolroop/internal/errors"
+	"github.com/moolroop/internal/errors"
 )
 
 // LogActivityPayload represents the payload to log an immutable activity.

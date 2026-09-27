@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"moolroop/internal/errors"
-	"moolroop/internal/store"
+	"github.com/moolroop/internal/errors"
+	"github.com/moolroop/internal/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -158,3 +158,50 @@ func TestMemoryStore_ConcurrentAccess(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, activities, numWorkers)
 }
+
+func TestMemoryStore_DecoupledLocksHighContention(t *testing.T) {
+	s := store.NewMemoryStore()
+
+	p, err := s.CreateProfile("Alice Concurrency", "alice.conc@example.com")
+	require.NoError(t, err)
+
+	const writers = 30
+	const appenders = 30
+	const iterations = 50
+
+	var wg sync.WaitGroup
+	wg.Add(writers + appenders)
+
+	// Heavy Profile Writers
+	for i := 0; i < writers; i++ {
+		go func(workerID int) {
+			defer wg.Done()
+			for j := 0; j < iterations; j++ {
+				newName := fmt.Sprintf("Alice-%d-%d", workerID, j)
+				updated, patchErr := s.PatchProfile(p.UserId, &newName, nil)
+				assert.NoError(t, patchErr)
+				assert.NotEmpty(t, updated.FullName)
+			}
+		}(i)
+	}
+
+	// Heavy Activity Appenders running simultaneously
+	for i := 0; i < appenders; i++ {
+		go func(workerID int) {
+			defer wg.Done()
+			for j := 0; j < iterations; j++ {
+				action := fmt.Sprintf("ACT_%d_%d", workerID, j)
+				rec, appErr := s.AppendActivity(p.UserId, action, "Concurrent event ingestion")
+				assert.NoError(t, appErr)
+				assert.NotEmpty(t, rec.ActivityId)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	activities, err := s.ListActivities(p.UserId)
+	require.NoError(t, err)
+	assert.Len(t, activities, appenders*iterations)
+}
+

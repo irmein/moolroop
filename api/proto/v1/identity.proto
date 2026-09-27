@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package moolroop.v1;
 
-option go_package = "moolroop/gen/v1;v1";
+option go_package = "github.com/moolroop/gen/v1;v1";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/field_mask.proto";

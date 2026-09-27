@@ -628,7 +628,7 @@ const file_api_proto_v1_identity_proto_rawDesc = "" +
 	"GetProfile\x12\x1e.moolroop.v1.GetProfileRequest\x1a\x1c.moolroop.v1.ProfileResponse\x12N\n" +
 	"\fPatchProfile\x12 .moolroop.v1.PatchProfileRequest\x1a\x1c.moolroop.v1.ProfileResponse\x12M\n" +
 	"\vLogActivity\x12\x1f.moolroop.v1.LogActivityRequest\x1a\x1d.moolroop.v1.ActivityResponse\x12Y\n" +
-	"\x0eListActivities\x12\".moolroop.v1.ListActivitiesRequest\x1a#.moolroop.v1.ListActivitiesResponseB\x14Z\x12moolroop/gen/v1;v1b\x06proto3"
+	"\x0eListActivities\x12\".moolroop.v1.ListActivitiesRequest\x1a#.moolroop.v1.ListActivitiesResponseB\x1fZ\x1dgithub.com/moolroop/gen/v1;v1b\x06proto3"
 
 var (
 	file_api_proto_v1_identity_proto_rawDescOnce sync.Once

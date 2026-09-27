@@ -1,9 +1,6 @@
 basePath: /api/v1
 definitions:
-  gin.H:
-    additionalProperties: {}
-    type: object
-  moolroop_gen_v1.ActivityRecord:
+  github_com_moolroop_gen_v1.ActivityRecord:
     properties:
       action_type:
         type: string
@@ -16,7 +13,7 @@ definitions:
       user_id:
         type: string
     type: object
-  moolroop_gen_v1.UserProfile:
+  github_com_moolroop_gen_v1.UserProfile:
     properties:
       created_at:
         $ref: '#/definitions/timestamppb.Timestamp'
@@ -29,7 +26,7 @@ definitions:
       user_id:
         type: string
     type: object
-  moolroop_internal_model.CreateProfilePayload:
+  github_com_moolroop_internal_model.CreateProfilePayload:
     properties:
       email:
         example: alice@example.com
@@ -41,7 +38,13 @@ definitions:
     - email
     - full_name
     type: object
-  moolroop_internal_model.LogActivityPayload:
+  github_com_moolroop_internal_model.ErrorResponse:
+    properties:
+      error:
+        example: user profile not found
+        type: string
+    type: object
+  github_com_moolroop_internal_model.LogActivityPayload:
     properties:
       action_type:
         example: PROFILE_UPDATE
@@ -56,7 +59,7 @@ definitions:
     - action_type
     - user_id
     type: object
-  moolroop_internal_model.PatchProfilePayload:
+  github_com_moolroop_internal_model.PatchProfilePayload:
     properties:
       email:
         example: alice.new@example.com
@@ -94,31 +97,39 @@ paths:
       - application/json
       description: Creates an append-only, immutable activity log event for a user
       parameters:
+      - description: Optional client-supplied correlation request ID
+        in: header
+        name: X-Request-ID
+        type: string
       - description: Activity payload
         in: body
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/moolroop_internal_model.LogActivityPayload'
+          $ref: '#/definitions/github_com_moolroop_internal_model.LogActivityPayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
+          headers:
+            X-Request-ID:
+              description: Unique correlation request ID
+              type: string
           schema:
-            $ref: '#/definitions/moolroop_gen_v1.ActivityRecord'
+            $ref: '#/definitions/github_com_moolroop_gen_v1.ActivityRecord'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
       summary: Log an immutable activity record
       tags:
       - activity
@@ -128,6 +139,10 @@ paths:
       - application/json
       description: Retrieves all historical activity records for the specified user
       parameters:
+      - description: Optional client-supplied correlation request ID
+        in: header
+        name: X-Request-ID
+        type: string
       - description: User ID
         in: path
         name: user_id
@@ -138,22 +153,26 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            X-Request-ID:
+              description: Unique correlation request ID
+              type: string
           schema:
             items:
-              $ref: '#/definitions/moolroop_gen_v1.ActivityRecord'
+              $ref: '#/definitions/github_com_moolroop_gen_v1.ActivityRecord'
             type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
       summary: List immutable activity history for a user
       tags:
       - activity
@@ -164,27 +183,35 @@ paths:
       description: Creates a new user profile with minimal PII (full name and email
         only)
       parameters:
+      - description: Optional client-supplied correlation request ID
+        in: header
+        name: X-Request-ID
+        type: string
       - description: Create Profile Request
         in: body
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/moolroop_internal_model.CreateProfilePayload'
+          $ref: '#/definitions/github_com_moolroop_internal_model.CreateProfilePayload'
       produces:
       - application/json
       responses:
         "201":
           description: Created
+          headers:
+            X-Request-ID:
+              description: Unique correlation request ID
+              type: string
           schema:
-            $ref: '#/definitions/moolroop_gen_v1.UserProfile'
+            $ref: '#/definitions/github_com_moolroop_gen_v1.UserProfile'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
       summary: Create a new user profile
       tags:
       - profile
@@ -194,6 +221,10 @@ paths:
       - application/json
       description: Retrieves profile information by user ID
       parameters:
+      - description: Optional client-supplied correlation request ID
+        in: header
+        name: X-Request-ID
+        type: string
       - description: User ID
         in: path
         name: id
@@ -204,16 +235,24 @@ paths:
       responses:
         "200":
           description: OK
+          headers:
+            X-Request-ID:
+              description: Unique correlation request ID
+              type: string
           schema:
-            $ref: '#/definitions/moolroop_gen_v1.UserProfile'
+            $ref: '#/definitions/github_com_moolroop_gen_v1.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
       summary: Get user profile by ID
       tags:
       - profile
@@ -222,6 +261,10 @@ paths:
       - application/json
       description: Incrementally update profile fields without rewriting full entity
       parameters:
+      - description: Optional client-supplied correlation request ID
+        in: header
+        name: X-Request-ID
+        type: string
       - description: User ID
         in: path
         name: id
@@ -232,26 +275,30 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/moolroop_internal_model.PatchProfilePayload'
+          $ref: '#/definitions/github_com_moolroop_internal_model.PatchProfilePayload'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+          headers:
+            X-Request-ID:
+              description: Unique correlation request ID
+              type: string
           schema:
-            $ref: '#/definitions/moolroop_gen_v1.UserProfile'
+            $ref: '#/definitions/github_com_moolroop_gen_v1.UserProfile'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/github_com_moolroop_internal_model.ErrorResponse'
       summary: Patch an existing user profile
       tags:
       - profile

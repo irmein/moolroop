@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	v1 "moolroop/gen/v1"
-	apperrors "moolroop/internal/errors"
-	"moolroop/internal/model"
-	"moolroop/internal/store"
+	v1 "github.com/moolroop/gen/v1"
+	apperrors "github.com/moolroop/internal/errors"
+	"github.com/moolroop/internal/model"
+	"github.com/moolroop/internal/store"
 )
 
 type GrpcHandler struct {

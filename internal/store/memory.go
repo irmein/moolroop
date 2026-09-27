@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	v1 "moolroop/gen/v1"
-	apperrors "moolroop/internal/errors"
+	v1 "github.com/moolroop/gen/v1"
+	apperrors "github.com/moolroop/internal/errors"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -16,8 +17,9 @@ var (
 )
 
 type MemoryStore struct {
-	mu         sync.RWMutex
+	profileMu  sync.RWMutex
 	profiles   map[string]*v1.UserProfile
+	activityMu sync.RWMutex
 	activities map[string][]*v1.ActivityRecord // Append-only activity logs
 }
 
@@ -28,9 +30,23 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
+func cloneProfile(p *v1.UserProfile) *v1.UserProfile {
+	if p == nil {
+		return nil
+	}
+	return proto.Clone(p).(*v1.UserProfile)
+}
+
+func cloneActivity(a *v1.ActivityRecord) *v1.ActivityRecord {
+	if a == nil {
+		return nil
+	}
+	return proto.Clone(a).(*v1.ActivityRecord)
+}
+
 func (s *MemoryStore) CreateProfile(name, email string) (*v1.UserProfile, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.profileMu.Lock()
+	defer s.profileMu.Unlock()
 
 	now := timestamppb.New(time.Now().UTC())
 	profile := &v1.UserProfile{
@@ -41,23 +57,23 @@ func (s *MemoryStore) CreateProfile(name, email string) (*v1.UserProfile, error)
 		UpdatedAt: now,
 	}
 	s.profiles[profile.UserId] = profile
-	return profile, nil
+	return cloneProfile(profile), nil
 }
 
 func (s *MemoryStore) GetProfile(userID string) (*v1.UserProfile, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.profileMu.RLock()
+	defer s.profileMu.RUnlock()
 
 	p, exists := s.profiles[userID]
 	if !exists {
 		return nil, ErrUserNotFound
 	}
-	return p, nil
+	return cloneProfile(p), nil
 }
 
 func (s *MemoryStore) PatchProfile(userID string, name, email *string) (*v1.UserProfile, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.profileMu.Lock()
+	defer s.profileMu.Unlock()
 
 	p, exists := s.profiles[userID]
 	if !exists {
@@ -71,17 +87,21 @@ func (s *MemoryStore) PatchProfile(userID string, name, email *string) (*v1.User
 		p.Email = *email
 	}
 	p.UpdatedAt = timestamppb.New(time.Now().UTC())
-	return p, nil
+	return cloneProfile(p), nil
 }
 
 // Append-only: creates an immutable historical event record
 func (s *MemoryStore) AppendActivity(userID, actionType, description string) (*v1.ActivityRecord, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.profileMu.RLock()
+	_, exists := s.profiles[userID]
+	s.profileMu.RUnlock()
 
-	if _, exists := s.profiles[userID]; !exists {
+	if !exists {
 		return nil, ErrUserNotFound
 	}
+
+	s.activityMu.Lock()
+	defer s.activityMu.Unlock()
 
 	record := &v1.ActivityRecord{
 		ActivityId:  uuid.New().String(),
@@ -92,19 +112,25 @@ func (s *MemoryStore) AppendActivity(userID, actionType, description string) (*v
 	}
 
 	s.activities[userID] = append(s.activities[userID], record)
-	return record, nil
+	return cloneActivity(record), nil
 }
 
 func (s *MemoryStore) ListActivities(userID string) ([]*v1.ActivityRecord, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.profileMu.RLock()
+	_, exists := s.profiles[userID]
+	s.profileMu.RUnlock()
 
-	if _, exists := s.profiles[userID]; !exists {
+	if !exists {
 		return nil, ErrUserNotFound
 	}
 
+	s.activityMu.RLock()
+	defer s.activityMu.RUnlock()
+
 	records := s.activities[userID]
 	copied := make([]*v1.ActivityRecord, len(records))
-	copy(copied, records)
+	for i, r := range records {
+		copied[i] = cloneActivity(r)
+	}
 	return copied, nil
 }

@@ -6,13 +6,15 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	v1 "moolroop/gen/v1"
-	"moolroop/internal/handler"
-	"moolroop/internal/model"
-	"moolroop/internal/store"
+	v1 "github.com/moolroop/gen/v1"
+	"github.com/moolroop/internal/handler"
+	"github.com/moolroop/internal/middleware"
+	"github.com/moolroop/internal/model"
+	"github.com/moolroop/internal/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -23,6 +25,7 @@ import (
 func setupTestRouter(s *store.MemoryStore) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
+	r.Use(middleware.RequestID())
 
 	profileHandler := handler.NewProfileHandler(s)
 	activityHandler := handler.NewActivityHandler(s)
@@ -56,6 +59,7 @@ func TestProfileRoutes(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusCreated, w.Code)
+	assert.NotEmpty(t, w.Header().Get("X-Request-ID"))
 	var createdProfile v1.UserProfile
 	err := json.Unmarshal(w.Body.Bytes(), &createdProfile)
 	require.NoError(t, err)
@@ -74,18 +78,26 @@ func TestProfileRoutes(t *testing.T) {
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+	var errResp model.ErrorResponse
+	err = json.Unmarshal(w.Body.Bytes(), &errResp)
+	require.NoError(t, err)
+	assert.Contains(t, strings.ToLower(errResp.Error), "email")
 
 	// 3. Get Profile
 	req = httptest.NewRequest(http.MethodGet, "/api/v1/profiles/"+createdProfile.UserId, nil)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NotEmpty(t, w.Header().Get("X-Request-ID"))
 
 	// 4. Get Profile - Not Found
 	req = httptest.NewRequest(http.MethodGet, "/api/v1/profiles/non-existing-id", nil)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusNotFound, w.Code)
+	err = json.Unmarshal(w.Body.Bytes(), &errResp)
+	require.NoError(t, err)
+	assert.Equal(t, "user profile not found", errResp.Error)
 
 	// 5. Patch Profile
 	newName := "Charles Brown"
@@ -99,6 +111,7 @@ func TestProfileRoutes(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NotEmpty(t, w.Header().Get("X-Request-ID"))
 	var patchedProfile v1.UserProfile
 	err = json.Unmarshal(w.Body.Bytes(), &patchedProfile)
 	require.NoError(t, err)
@@ -134,6 +147,7 @@ func TestActivityRoutes(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusCreated, w.Code)
+	assert.NotEmpty(t, w.Header().Get("X-Request-ID"))
 	var record v1.ActivityRecord
 	err = json.Unmarshal(w.Body.Bytes(), &record)
 	require.NoError(t, err)
@@ -158,6 +172,7 @@ func TestActivityRoutes(t *testing.T) {
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.NotEmpty(t, w.Header().Get("X-Request-ID"))
 	var list []v1.ActivityRecord
 	err = json.Unmarshal(w.Body.Bytes(), &list)
 	require.NoError(t, err)

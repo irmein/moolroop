@@ -4,17 +4,18 @@ export PATH := /opt/homebrew/bin:$(GOPATH)/bin:$(PATH)
 
 PROTOC ?= $(shell which protoc 2>/dev/null || echo /opt/homebrew/bin/protoc)
 SWAG ?= $(shell which swag 2>/dev/null || echo $(GOPATH)/bin/swag)
+GOLANGCI_LINT ?= $(shell which golangci-lint 2>/dev/null || echo $(GOPATH)/bin/golangci-lint)
 
-.PHONY: all proto swag test vet build run clean
+.PHONY: all proto swag lint test vet build run clean
 
-all: proto swag test build
+all: proto swag lint vet test build
 
 ## proto: Compile protobuf definitions into Go stubs
 proto:
 	@echo "==> Compiling protobuf definitions..."
 	@mkdir -p proto/gen/go/v1
-	$(PROTOC) --go_out=. --go_opt=module=moolroop \
-	          --go-grpc_out=. --go-grpc_opt=module=moolroop \
+	$(PROTOC) --go_out=. --go_opt=module=github.com/moolroop \
+	          --go-grpc_out=. --go-grpc_opt=module=github.com/moolroop \
 	          api/proto/v1/identity.proto
 	@mkdir -p gen
 	@if [ ! -L gen/v1 ] && [ ! -d gen/v1 ]; then \
@@ -25,6 +26,11 @@ proto:
 swag:
 	@echo "==> Generating Swagger documentation..."
 	$(SWAG) init -g cmd/server/main.go -o docs/ --parseDependency --parseInternal
+
+## lint: Run golangci-lint inspection
+lint:
+	@echo "==> Running golangci-lint..."
+	$(GOLANGCI_LINT) run ./...
 
 ## test: Run unit test suites with race detector
 test:

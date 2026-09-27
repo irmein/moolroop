@@ -179,6 +179,7 @@ The included [`Makefile`](file:///Users/rohithtp/mine/home/workspaces/moolroop/M
 ```bash
 make proto    # Recompile Protocol Buffer stubs
 make swag     # Rebuild Swagger docs from handler annotations
+make lint     # Run golangci-lint static analysis
 make test     # Execute all test suites with race detection (-race)
 make vet      # Run static analysis with go vet
 make build    # Compile the binary to bin/server

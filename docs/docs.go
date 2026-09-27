@@ -30,12 +30,18 @@ const docTemplate = `{
                 "summary": "Log an immutable activity record",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Optional client-supplied correlation request ID",
+                        "name": "X-Request-ID",
+                        "in": "header"
+                    },
+                    {
                         "description": "Activity payload",
                         "name": "payload",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/moolroop_internal_model.LogActivityPayload"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.LogActivityPayload"
                         }
                     }
                 ],
@@ -43,25 +49,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/moolroop_gen_v1.ActivityRecord"
+                            "$ref": "#/definitions/github_com_moolroop_gen_v1.ActivityRecord"
+                        },
+                        "headers": {
+                            "X-Request-ID": {
+                                "type": "string",
+                                "description": "Unique correlation request ID"
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     }
                 }
@@ -83,6 +95,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Optional client-supplied correlation request ID",
+                        "name": "X-Request-ID",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "User ID",
                         "name": "user_id",
                         "in": "path",
@@ -95,26 +113,32 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/moolroop_gen_v1.ActivityRecord"
+                                "$ref": "#/definitions/github_com_moolroop_gen_v1.ActivityRecord"
+                            }
+                        },
+                        "headers": {
+                            "X-Request-ID": {
+                                "type": "string",
+                                "description": "Unique correlation request ID"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     }
                 }
@@ -135,12 +159,18 @@ const docTemplate = `{
                 "summary": "Create a new user profile",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Optional client-supplied correlation request ID",
+                        "name": "X-Request-ID",
+                        "in": "header"
+                    },
+                    {
                         "description": "Create Profile Request",
                         "name": "payload",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/moolroop_internal_model.CreateProfilePayload"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.CreateProfilePayload"
                         }
                     }
                 ],
@@ -148,19 +178,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/moolroop_gen_v1.UserProfile"
+                            "$ref": "#/definitions/github_com_moolroop_gen_v1.UserProfile"
+                        },
+                        "headers": {
+                            "X-Request-ID": {
+                                "type": "string",
+                                "description": "Unique correlation request ID"
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     }
                 }
@@ -182,6 +218,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Optional client-supplied correlation request ID",
+                        "name": "X-Request-ID",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -192,19 +234,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/moolroop_gen_v1.UserProfile"
+                            "$ref": "#/definitions/github_com_moolroop_gen_v1.UserProfile"
+                        },
+                        "headers": {
+                            "X-Request-ID": {
+                                "type": "string",
+                                "description": "Unique correlation request ID"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     }
                 }
@@ -224,6 +278,12 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Optional client-supplied correlation request ID",
+                        "name": "X-Request-ID",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "description": "User ID",
                         "name": "id",
                         "in": "path",
@@ -235,7 +295,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/moolroop_internal_model.PatchProfilePayload"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.PatchProfilePayload"
                         }
                     }
                 ],
@@ -243,25 +303,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/moolroop_gen_v1.UserProfile"
+                            "$ref": "#/definitions/github_com_moolroop_gen_v1.UserProfile"
+                        },
+                        "headers": {
+                            "X-Request-ID": {
+                                "type": "string",
+                                "description": "Unique correlation request ID"
+                            }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/github_com_moolroop_internal_model.ErrorResponse"
                         }
                     }
                 }
@@ -269,11 +335,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gin.H": {
-            "type": "object",
-            "additionalProperties": {}
-        },
-        "moolroop_gen_v1.ActivityRecord": {
+        "github_com_moolroop_gen_v1.ActivityRecord": {
             "type": "object",
             "properties": {
                 "action_type": {
@@ -293,7 +355,7 @@ const docTemplate = `{
                 }
             }
         },
-        "moolroop_gen_v1.UserProfile": {
+        "github_com_moolroop_gen_v1.UserProfile": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -313,7 +375,7 @@ const docTemplate = `{
                 }
             }
         },
-        "moolroop_internal_model.CreateProfilePayload": {
+        "github_com_moolroop_internal_model.CreateProfilePayload": {
             "type": "object",
             "required": [
                 "email",
@@ -330,7 +392,16 @@ const docTemplate = `{
                 }
             }
         },
-        "moolroop_internal_model.LogActivityPayload": {
+        "github_com_moolroop_internal_model.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "user profile not found"
+                }
+            }
+        },
+        "github_com_moolroop_internal_model.LogActivityPayload": {
             "type": "object",
             "required": [
                 "action_type",
@@ -351,7 +422,7 @@ const docTemplate = `{
                 }
             }
         },
-        "moolroop_internal_model.PatchProfilePayload": {
+        "github_com_moolroop_internal_model.PatchProfilePayload": {
             "type": "object",
             "properties": {
                 "email": {

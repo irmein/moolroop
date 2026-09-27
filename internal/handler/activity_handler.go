@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	_ "moolroop/gen/v1"
-	apperrors "moolroop/internal/errors"
-	"moolroop/internal/model"
-	"moolroop/internal/store"
+	_ "github.com/moolroop/gen/v1"
+	apperrors "github.com/moolroop/internal/errors"
+	"github.com/moolroop/internal/model"
+	"github.com/moolroop/internal/store"
 )
 
 type ActivityHandler struct {
@@ -25,31 +25,33 @@ func NewActivityHandler(s *store.MemoryStore) *ActivityHandler {
 // @Tags         activity
 // @Accept       json
 // @Produce      json
-// @Param        payload  body      model.LogActivityPayload  true  "Activity payload"
-// @Success      201      {object}  v1.ActivityRecord
-// @Failure      400      {object}  gin.H
-// @Failure      404      {object}  gin.H
-// @Failure      500      {object}  gin.H
+// @Param        X-Request-ID  header    string                    false  "Optional client-supplied correlation request ID"
+// @Param        payload       body      model.LogActivityPayload  true   "Activity payload"
+// @Success      201           {object}  v1.ActivityRecord
+// @Failure      400           {object}  model.ErrorResponse
+// @Failure      404           {object}  model.ErrorResponse
+// @Failure      500           {object}  model.ErrorResponse
+// @Header       201           {string}  X-Request-ID  "Unique correlation request ID"
 // @Router       /activities [post]
 func (h *ActivityHandler) LogActivity(c *gin.Context) {
 	var payload model.LogActivityPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload: " + err.Error()})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid payload: " + err.Error()})
 		return
 	}
 
 	if err := payload.Validate(); err != nil {
-		c.JSON(apperrors.ToHTTPStatus(err), gin.H{"error": err.Error()})
+		c.JSON(apperrors.ToHTTPStatus(err), model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
 	record, err := h.store.AppendActivity(payload.UserID, payload.ActionType, payload.Description)
 	if err != nil {
 		if errors.Is(err, store.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusNotFound, model.ErrorResponse{Error: err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to log activity"})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "failed to log activity"})
 		return
 	}
 
@@ -62,26 +64,28 @@ func (h *ActivityHandler) LogActivity(c *gin.Context) {
 // @Tags         activity
 // @Accept       json
 // @Produce      json
-// @Param        user_id  path      string  true  "User ID"
-// @Success      200      {array}   v1.ActivityRecord
-// @Failure      400      {object}  gin.H
-// @Failure      404      {object}  gin.H
-// @Failure      500      {object}  gin.H
+// @Param        X-Request-ID  header    string  false  "Optional client-supplied correlation request ID"
+// @Param        user_id       path      string  true   "User ID"
+// @Success      200           {array}   v1.ActivityRecord
+// @Failure      400           {object}  model.ErrorResponse
+// @Failure      404           {object}  model.ErrorResponse
+// @Failure      500           {object}  model.ErrorResponse
+// @Header       200           {string}  X-Request-ID  "Unique correlation request ID"
 // @Router       /activities/{user_id} [get]
 func (h *ActivityHandler) ListActivities(c *gin.Context) {
 	userID := c.Param("user_id")
 	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "user_id is required"})
 		return
 	}
 
 	records, err := h.store.ListActivities(userID)
 	if err != nil {
 		if errors.Is(err, store.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.JSON(http.StatusNotFound, model.ErrorResponse{Error: err.Error()})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list activities"})
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "failed to list activities"})
 		return
 	}
 

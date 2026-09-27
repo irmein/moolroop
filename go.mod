@@ -1,4 +1,4 @@
-module moolroop
+module github.com/moolroop
 
 go 1.27.0
 

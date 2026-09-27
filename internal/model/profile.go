@@ -4,7 +4,7 @@ import (
 	"net/mail"
 	"strings"
 
-	"moolroop/internal/errors"
+	"github.com/moolroop/internal/errors"
 )
 
 // CreateProfilePayload represents the payload to create a new profile.
